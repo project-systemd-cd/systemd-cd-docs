@@ -85,8 +85,8 @@ git_target_branch = "main"
 git_tag_regex = "v*"
 build_commands = [
 "/root/.local/share/pnpm/pnpm install",
-"""cat << EOF > .env.local
-NEXT_PUBLIC_API_URL=http://$(dig +short myip.opendns.com @resolver1.opendns.com):1323/
+"""cat << EOF > .env.local # Rewrite host
+NEXT_PUBLIC_API_URL=http://<systemd-cd-host>:1323/
 EOF""",
 "/root/.local/share/pnpm/pnpm build",
 "cp -r .next/static .next/standalone/.next/static",

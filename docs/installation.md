@@ -76,3 +76,35 @@ ARGS="\
 EOF
 systemctl start systemd-cd
 ```
+
+## Install frontend
+
+1. Copy the following manifest file and **rewrite host**.
+2. Specify it with the `-f` option or push it to the repository specified with `--ops.git-remote`.
+
+```bash
+name = "systemd-cd-frontend"
+git_remote_url = "https://github.com/tingtt/systemd-cd-frontend.git"
+git_target_branch = "main"
+git_tag_regex = "v*"
+build_commands = [
+"/root/.local/share/pnpm/pnpm install",
+"""cat << EOF > .env.local # Rewrite host
+NEXT_PUBLIC_API_URL=http://<systemd-cd-host>:1323/
+EOF""",
+"/root/.local/share/pnpm/pnpm build",
+"cp -r .next/static .next/standalone/.next/static",
+"cp -r public .next/standalone"
+]
+
+[[systemd_services]]
+name = "systemd-cd-frontend"
+description = "systemd-cd frontend with Next.js"
+exec_start = "/usr/bin/node .next/standalone/server.js"
+opt_files = [".next/standalone/"]
+port = 3000
+
+[[systemd_services.env]]
+name = "PORT"
+value = "3000"
+```
