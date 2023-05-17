@@ -7,19 +7,26 @@ sidebar_position: 1
 ## Manifest file format
 
 ```bash
-name = ""               # pipeline-name
+name = ""               # Pipeline name
 git_remote_url = ""     # Git remote repository url
 git_target_branch = ""  # Git branch
-git_tag_regex = ""    # Git tag regex to trigger (optional)
+git_tag_regex = ""      # Git tag regex to trigger. (optional)
 test_commands = []      # Test commands
 build_commands = []     # Build commands
+binaries = []           # Binary files to install.
 
 [[systemd_services]]
 name = ""               # systemd unit service name
 description = ""        # Pipeline sample (optional)
-exec_start = ""         # Execute command to start application
-opt_files = [""]        # Files and directories required to run the application
-port =  0               # Port to listen (optional)
+exec_start_pre = ""     # Command to execute before `exec_start`.
+exec_start = ""         # Command to start application.
+opt_files = [""]        # Files and directories required to run the application.
+port =  0               # Port to listen. (optional)
+
+[[systemd_services.etc]]
+target = ""             # Path of configuration file or directory.
+content = ""            # Contents of the configuration file. (optional)
+option = ""             # CLI option name to speficy file or directory.
 
 [[systemd_services.env]]
 name = ""               # Environment variable name
@@ -36,18 +43,29 @@ value = ""              # Environment variable value
 | git_tag_regex | string | Git tag regex to trigger |  |
 | test_commands | string[] | Test commands |  |
 | build_commands | string[] | Build commands |  |
-| systemd_services | systemd_unit[] |  |  |
+| binaries | string[] | Binary files to install. |  |
+| systemd_services | systemd_service[] | Configuration of applications to run over systemd. |  |
 
-`systemd_unit`
+`systemd_service`
 
 | Key | Type | Description | Required |
 |-|-|-|-|
 | name | string | systemd unit service name | :heavy_check_mark: |
 | description | string | systemd unit service description |  |
-| exec_start | string | Execute command to start application | :heavy_check_mark: |
-| opt_files | string[] | Files and directories required to run the application |  |
-| port | int (1 ~ 65535) | Port to listen |  |
-| env | env[] |  |  |
+| exec_start_pre | string | Command to execute before `exec_start`. |  |
+| exec_start | string | Command to start application. | :heavy_check_mark: |
+| opt_files | string[] | Files and directories required to run the application.<br/> (Relative path from the repository root.) |  |
+| etc | etc_option[] | Configuration files and directories containing them to load with CLI options when the application is run. |  |
+| port | int<br/> (1 ~ 65535) | Port to listen. |  |
+| env | env[] | Envinronment variables required to run the application. |  |
+
+`etc_option`
+
+| Key | Type | Description | Required |
+|-|-|-|-|
+| target | string | File or directory path<br/> (Relative path from the repository root.) | :heavy_check_mark: |
+| content | string | Content of the configuration file.<br/> (If specified, creates the file instead of copying a file.) |  |
+| option | string | CLI option to be specified at run time. | :heavy_check_mark: |
 
 `env`
 
@@ -74,6 +92,10 @@ description = "Sample go project"
 exec_start = "workspace-go"
 args = "--port 80"
 port = 80
+
+[[systemd_services.etc]] # This will run `./workspace-go --port 80 -f workspace-go.yml`
+target = "workspace-go.yml"
+option = "-f"
 ```
 
 ### Next.js (standalone)
